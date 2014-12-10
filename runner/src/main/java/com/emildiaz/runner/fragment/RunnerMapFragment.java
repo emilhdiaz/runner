@@ -35,9 +35,9 @@ import java.util.List;
 public class RunnerMapFragment extends MapFragment implements LocationListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
     private final static String LOG_TAG = "Location Updates";
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-    private final static int DEFAULT_CAMERA_UPDATE_INTERVAL = 1000 * 2;
-    private final static int FASTEST_UPDATE_INTERVAL = 1000 * 2;
-    private final static int NORMAL_UPDATE_INTERVAL = 1000 * 5;
+    private final static int DEFAULT_CAMERA_UPDATE_INTERVAL = 1000 * 5;
+    private final static int FASTEST_UPDATE_INTERVAL = 1000 * 5;
+    private final static int NORMAL_UPDATE_INTERVAL = 1000 * 10;
     private final static int DEFAULT_MAP_ZOOM = 20;
 
     private Polyline polyline;
@@ -57,6 +57,20 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
         this.locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         this.locationRequest.setInterval(NORMAL_UPDATE_INTERVAL);
         this.locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            this.locationUpdateListener = (LocationUpdateListener) activity;
+        }
+        catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement LocationUpdateListener");
+        }
     }
 
     @Override
@@ -105,13 +119,18 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
         this.animateUpdate();
     }
 
-    public void startTracking(LocationUpdateListener listener) {
-        this.locationUpdateListener = listener;
+    public void startTracking() {
+        GoogleMap map = this.getMap();
+        map.setMyLocationEnabled(true);
+        map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        map.getUiSettings().setZoomControlsEnabled(false);
+        map.getUiSettings().setAllGesturesEnabled(false);
+        map.getUiSettings().setCompassEnabled(true);
         this.locationClient.connect();
     }
 
     public void stopTracking() {
-        this.locationUpdateListener = null;
+        this.getMap().setMyLocationEnabled(false);
         if (this.locationClient.isConnected()) {
             this.locationClient.removeLocationUpdates(this);
         }
@@ -166,8 +185,10 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
             double lng = t * currentLatLng.longitude + (1 - t) * lastLatLng.longitude;
             LatLng intermediateLatLng = new LatLng(lat, lng);
             points.add(intermediateLatLng);
+            this.polyline.setPoints(points);
             this.currentMarker.setPosition(intermediateLatLng);
-            t = interpolator.getInterpolation((float) SystemClock.uptimeMillis() - start / DEFAULT_CAMERA_UPDATE_INTERVAL);
+            float elapsed = (float) SystemClock.uptimeMillis() - start;
+            t = interpolator.getInterpolation(elapsed / DEFAULT_CAMERA_UPDATE_INTERVAL);
         }
 
         points.add(currentLatLng);

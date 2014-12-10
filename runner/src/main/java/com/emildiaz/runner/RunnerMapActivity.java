@@ -3,7 +3,6 @@ package com.emildiaz.runner;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,21 +11,21 @@ import android.widget.TextView;
 import com.emildiaz.runner.fragment.RunnerMapFragment;
 import com.emildiaz.runner.task.GetAddressTask;
 
-public class RunnerMapActivity extends ActionBarActivity implements RunnerMapFragment.LocationUpdateListener, GetAddressTask.AddressUpdateListener {
+import roboguice.activity.RoboActivity;
+import roboguice.inject.ContentView;
+import roboguice.inject.InjectFragment;
+import roboguice.inject.InjectView;
 
-    private TextView locationText;
-    private TextView addressText;
-    private RunnerMapFragment runnerMapFragment;
+@ContentView(R.layout.activity_runner_map)
+public class RunnerMapActivity extends RoboActivity implements RunnerMapFragment.LocationUpdateListener, GetAddressTask.AddressUpdateListener {
+
+    @InjectView(R.id.location_text) TextView locationText;
+    @InjectView(R.id.address_text)  TextView addressText;
+    @InjectFragment(R.id.map)       RunnerMapFragment runnerMapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_runner_map);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        this.locationText = (TextView) findViewById(R.id.location_text);
-        this.addressText = (TextView) findViewById(R.id.address_text);
-        this.runnerMapFragment = (RunnerMapFragment) getFragmentManager().findFragmentById(R.id.map);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class RunnerMapActivity extends ActionBarActivity implements RunnerMapFra
     }
 
     public void startTracking(View view) {
-        this.runnerMapFragment.startTracking(this);
+        this.runnerMapFragment.startTracking();
     }
 
     public void stopTracking(View view) {
