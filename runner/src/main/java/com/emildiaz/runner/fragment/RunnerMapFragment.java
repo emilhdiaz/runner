@@ -122,10 +122,6 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
     public void startTracking() {
         GoogleMap map = this.getMap();
         map.setMyLocationEnabled(true);
-        map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-        map.getUiSettings().setZoomControlsEnabled(false);
-        map.getUiSettings().setAllGesturesEnabled(false);
-        map.getUiSettings().setCompassEnabled(true);
         this.locationClient.connect();
     }
 

@@ -40,6 +40,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         map:mapType="terrain"
+        map:cameraTargetLat="40.7491870"
+        map:cameraTargetLng="-73.9405630"
+        map:uiCompass="true"
+        map:uiZoomControls="false"
+        map:uiZoomGestures="false"
+        map:uiScrollGestures="false"
+        map:uiRotateGestures="false"
+        map:uiTiltGestures="false"
         tools:ignore="MissingPrefix"
         />
 
@@ -47,7 +55,7 @@
         android:id="@+id/address_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
         android:indeterminate="true"
         android:visibility="gone"/>
 </LinearLayout>
