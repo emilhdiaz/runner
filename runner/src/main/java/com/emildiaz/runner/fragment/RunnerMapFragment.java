@@ -1,7 +1,6 @@
 package com.emildiaz.runner.fragment;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -12,11 +11,10 @@ import android.util.Log;
 import android.view.animation.LinearInterpolator;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -32,7 +30,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class RunnerMapFragment extends MapFragment implements LocationListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
+public class RunnerMapFragment extends MapFragment implements
+    LocationListener,
+    GoogleApiClient.ConnectionCallbacks,
+    GoogleApiClient.OnConnectionFailedListener
+{
     private final static String LOG_TAG = "Location Updates";
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static int DEFAULT_CAMERA_UPDATE_INTERVAL = 1000 * 5;
@@ -45,9 +47,10 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
     private Marker currentMarker;
     private Location lastLocation;
     private Location currentLocation;
-    private LocationClient locationClient;
     private LocationRequest locationRequest;
     private LocationUpdateListener locationUpdateListener;
+    private GoogleApiClient apiClient;
+
 
     public interface LocationUpdateListener {
         public void onLocationUpdated(Location location);
@@ -56,11 +59,17 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.locationClient = new LocationClient(this.getActivity(), this, this);
-        this.locationRequest = LocationRequest.create();
-        this.locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        this.locationRequest.setInterval(NORMAL_UPDATE_INTERVAL);
-        this.locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL);
+
+        apiClient = new GoogleApiClient.Builder(getActivity())
+            .addConnectionCallbacks(this)
+            .addOnConnectionFailedListener(this)
+            .addApi(LocationServices.API)
+            .build();
+
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(NORMAL_UPDATE_INTERVAL);
+        locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     @Override
@@ -70,7 +79,7 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
-            this.locationUpdateListener = (LocationUpdateListener) activity;
+            locationUpdateListener = (LocationUpdateListener) activity;
         }
         catch (ClassCastException e) {
             throw new ClassCastException(activity.toString() + " must implement LocationUpdateListener");
@@ -91,14 +100,25 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
 
     @Override
     public void onConnected(Bundle dataBundle) {
-        this.locationClient.requestLocationUpdates(this.locationRequest, this);
+        Location location = LocationServices.FusedLocationApi.getLastLocation(apiClient);
+
+        if (location != null) {
+            onLocationChanged(location);
+        }
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, locationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         if (connectionResult.hasResolution()) {
             try {
-                connectionResult.startResolutionForResult(this.getActivity(), CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                connectionResult.startResolutionForResult(getActivity(), CONNECTION_FAILURE_RESOLUTION_REQUEST);
             }
             catch (IntentSender.SendIntentException e) {
                 e.printStackTrace();
@@ -110,54 +130,49 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
     }
 
     @Override
-    public void onDisconnected() {
-
-    }
-
-    @Override
     public void onLocationChanged(Location location) {
-        this.lastLocation = (this.currentLocation != null) ? this.currentLocation : location;
-        this.currentLocation = location;
-        this.locationUpdateListener.onLocationUpdated(location);
-        this.animateUpdate();
+        lastLocation = (currentLocation != null) ? currentLocation : location;
+        currentLocation = location;
+        locationUpdateListener.onLocationUpdated(location);
+        animateUpdate();
     }
 
     public void startTracking() {
-        GoogleMap map = this.getMap();
+        GoogleMap map = getMap();
         map.setMyLocationEnabled(true);
-        this.locationClient.connect();
+        apiClient.connect();
     }
 
     public void stopTracking() {
-        this.getMap().setMyLocationEnabled(false);
-        if (this.locationClient.isConnected()) {
-            this.locationClient.removeLocationUpdates(this);
+        getMap().setMyLocationEnabled(false);
+        if (apiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
         }
-        locationClient.disconnect();
+        apiClient.disconnect();
     }
 
     protected void animateUpdate() {
-        GoogleMap map = this.getMap();
-        LatLng lastLatLng = new LatLng(this.lastLocation.getLatitude(), this.lastLocation.getLongitude());
-        LatLng currentLatLng = new LatLng(this.currentLocation.getLatitude(), this.currentLocation.getLongitude());
+        GoogleMap map = getMap();
+        LatLng lastLatLng = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+        LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
 
         // Create the polyline
-        if (this.polyline == null) {
-            this.polyline = map.addPolyline(new PolylineOptions().geodesic(true)
+        if (polyline == null) {
+            polyline = map.addPolyline(new PolylineOptions().geodesic(true)
                 .color(Color.BLUE)
                 .width(15));
         }
 
         // Create the first marker
-        if (this.firstMarker == null) {
-            this.firstMarker = map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+        if (firstMarker == null) {
+            firstMarker = map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .title("Start")
                 .position(currentLatLng));
         }
 
         // Create the current marker
-        if (this.currentMarker == null) {
-            this.currentMarker = map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+        if (currentMarker == null) {
+            currentMarker = map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .title("Me!")
                 .position(currentLatLng));
         }
@@ -165,8 +180,8 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
         // Animate the camera update
         CameraPosition cameraPosition = CameraPosition.builder()
             .target(currentLatLng)
-            .bearing(getLocationFromLatLng(lastLatLng).bearingTo(getLocationFromLatLng(currentLatLng)))
-            .tilt(90)
+//            .bearing(getLocationFromLatLng(lastLatLng).bearingTo(getLocationFromLatLng(currentLatLng)))
+//            .tilt(90)
             .zoom(DEFAULT_MAP_ZOOM)
             .build();
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), DEFAULT_CAMERA_UPDATE_INTERVAL, null);
@@ -175,8 +190,8 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
         double t = 0;
         long start = SystemClock.uptimeMillis();
         LinearInterpolator interpolator = new LinearInterpolator();
-        List<LatLng> points = this.polyline.getPoints() != null ?
-            this.polyline.getPoints() :
+        List<LatLng> points = polyline.getPoints() != null ?
+            polyline.getPoints() :
             new ArrayList<LatLng>();
 
         while (t < 1) {
@@ -184,15 +199,15 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
             double lng = t * currentLatLng.longitude + (1 - t) * lastLatLng.longitude;
             LatLng intermediateLatLng = new LatLng(lat, lng);
             points.add(intermediateLatLng);
-            this.polyline.setPoints(points);
-            this.currentMarker.setPosition(intermediateLatLng);
+            polyline.setPoints(points);
+            currentMarker.setPosition(intermediateLatLng);
             float elapsed = (float) SystemClock.uptimeMillis() - start;
             t = interpolator.getInterpolation(elapsed / DEFAULT_CAMERA_UPDATE_INTERVAL);
         }
 
         points.add(currentLatLng);
-        this.polyline.setPoints(points);
-        this.currentMarker.setPosition(currentLatLng);
+        polyline.setPoints(points);
+        currentMarker.setPosition(currentLatLng);
     }
 
     protected Location getLocationFromLatLng(LatLng latLng) {
