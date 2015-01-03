@@ -49,6 +49,10 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
     private LocationRequest locationRequest;
     private LocationUpdateListener locationUpdateListener;
 
+    public interface LocationUpdateListener {
+        public void onLocationUpdated(Location location);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,7 +116,6 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
 
     @Override
     public void onLocationChanged(Location location) {
-        //        if (!isBetterLocation(location)) return;
         this.lastLocation = (this.currentLocation != null) ? this.currentLocation : location;
         this.currentLocation = location;
         this.locationUpdateListener.onLocationUpdated(location);
@@ -198,46 +201,5 @@ public class RunnerMapFragment extends MapFragment implements LocationListener, 
         location.setLongitude(latLng.longitude);
         location.setTime(new Date().getTime());
         return location;
-    }
-
-    protected boolean isBetterLocation(Location location) {
-        // New location is always better
-        if (this.currentLocation == null) return true;
-
-        long timeDelta = location.getTime() - this.currentLocation.getTime();
-        int accuracyDelta = (int) (location.getAccuracy() - this.currentLocation.getAccuracy());
-
-        // Is significantly newer
-        if (timeDelta < NORMAL_UPDATE_INTERVAL) return true;
-
-        // Is significantly older
-        if (timeDelta > -NORMAL_UPDATE_INTERVAL) return false;
-
-        // Is more accurate
-        return accuracyDelta < 0;
-
-    }
-
-    protected boolean servicesConnected() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this.getActivity());
-
-        // Google Play Services is available
-        if (resultCode != ConnectionResult.SUCCESS) {
-            Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this.getActivity(), CONNECTION_FAILURE_RESOLUTION_REQUEST);
-
-            if (errorDialog != null) {
-                ErrorDialogFragment errorFragment = new ErrorDialogFragment();
-                errorFragment.setDialog(errorDialog);
-                errorFragment.show(getFragmentManager(), "Location Updates");
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public interface LocationUpdateListener {
-        public void onLocationUpdated(Location location);
     }
 }
