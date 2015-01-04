@@ -36,7 +36,7 @@
 
     <fragment
         android:id="@+id/map"
-        android:name="com.emildiaz.runner.fragment.RunnerMapFragment"
+        android:name="com.emildiaz.runner.fragment.MapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         map:mapType="terrain"

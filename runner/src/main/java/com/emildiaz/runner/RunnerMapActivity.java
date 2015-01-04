@@ -2,13 +2,12 @@ package com.emildiaz.runner;
 
 import android.location.Address;
 import android.location.Location;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.emildiaz.runner.fragment.RunnerMapFragment;
+import com.emildiaz.runner.fragment.MapFragment;
 import com.emildiaz.runner.task.GetAddressTask;
 
 import roboguice.activity.RoboActivity;
@@ -17,11 +16,11 @@ import roboguice.inject.InjectFragment;
 import roboguice.inject.InjectView;
 
 @ContentView(R.layout.activity_runner_map)
-public class RunnerMapActivity extends RoboActivity implements RunnerMapFragment.LocationUpdateListener, GetAddressTask.AddressUpdateListener {
+public class RunnerMapActivity extends RoboActivity implements MapFragment.LocationUpdateListener, GetAddressTask.AddressUpdateListener {
 
     @InjectView(R.id.location_text) TextView locationText;
     @InjectView(R.id.address_text)  TextView addressText;
-    @InjectFragment(R.id.map)       RunnerMapFragment runnerMapFragment;
+    @InjectFragment(R.id.map)       MapFragment mapFragment;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -58,10 +57,10 @@ public class RunnerMapActivity extends RoboActivity implements RunnerMapFragment
     }
 
     public void startTracking(View view) {
-        this.runnerMapFragment.startTracking();
+        this.mapFragment.startTracking();
     }
 
     public void stopTracking(View view) {
-        this.runnerMapFragment.stopTracking();
+        this.mapFragment.stopTracking();
     }
 }
