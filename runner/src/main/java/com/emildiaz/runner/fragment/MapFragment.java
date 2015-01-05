@@ -10,6 +10,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.animation.LinearInterpolator;
 
+import com.emildiaz.runner.model.Run;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -25,7 +26,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import com.google.inject.Inject;
 import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     private LocationRequest locationRequest;
     private LocationUpdateListener locationUpdateListener;
     private GoogleApiClient apiClient;
-    @Inject private List<LatLng> latLngHistory;
+    private List<LatLng> latLngHistory;
 
 
     public interface LocationUpdateListener {
@@ -75,6 +75,8 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
         locationRequest.setInterval(NORMAL_UPDATE_INTERVAL);
         locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        latLngHistory = new ArrayList<>();
     }
 
     @Override
@@ -87,6 +89,12 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
         }
 
         locationUpdateListener = (LocationUpdateListener) activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        locationUpdateListener = null;
     }
 
     @Override
@@ -139,6 +147,8 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     }
 
     public void startTracking() {
+        resetMap();
+
         // Connect to Google API
         GoogleMap map = getMap();
         map.setMyLocationEnabled(true);
@@ -155,23 +165,51 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     }
 
     public void resetMap() {
-        polyline.remove();
-        firstMarker.remove();
-        currentMarker.remove();
+        if (polyline != null) {
+            polyline.remove();
+            polyline = null;
+        }
+        if (polyline != null) {
+            firstMarker.remove();
+            firstMarker = null;
+        }
+        if (polyline != null) {
+            currentMarker.remove();
+            currentMarker = null;
+        }
         lastLocation = null;
         currentLocation = null;
         latLngHistory.clear();
     }
 
     public List<LatLng> drawPath(List<LatLng> latLngs) {
+        resetMap();
         GoogleMap map = getMap();
-        Polyline polyline = map.addPolyline(new PolylineOptions()
+        LatLng firstLatLng = latLngs.get(0);
+
+        polyline = map.addPolyline(new PolylineOptions()
                 .geodesic(true)
                 .color(Color.CYAN)
                 .width(10)
         );
-
         polyline.setPoints(latLngs);
+
+        firstMarker = map.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                .title("Start")
+                .position(firstLatLng)
+        );
+
+        lastLocation = currentLocation = getLocationFromLatLng(firstLatLng);
+
+        latLngHistory = new ArrayList<>(latLngs);
+
+        CameraPosition cameraPosition = CameraPosition.builder()
+            .target(firstLatLng)
+            .zoom(DEFAULT_MAP_ZOOM)
+            .build();
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), DEFAULT_CAMERA_UPDATE_INTERVAL, null);
+
         return latLngs;
     }
 
@@ -182,6 +220,11 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
 
     public List<LatLng> drawPath(Polyline polyline) {
         List<LatLng> latLngs = polyline.getPoints();
+        return drawPath(latLngs);
+    }
+
+    public List<LatLng> drawPath(Run run) {
+        List<LatLng> latLngs = run.getLatLngHistory();
         return drawPath(latLngs);
     }
 
@@ -205,7 +248,8 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
 
         // Create the first marker
         if (firstMarker == null) {
-            firstMarker = map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+            firstMarker = map.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .title("Start")
                 .position(currentLatLng)
             );
@@ -213,7 +257,8 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
 
         // Create the current marker
         if (currentMarker == null) {
-            currentMarker = map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+            currentMarker = map.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .title("Me!")
                 .position(currentLatLng)
             );
