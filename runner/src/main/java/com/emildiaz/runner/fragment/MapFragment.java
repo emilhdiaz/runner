@@ -10,6 +10,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.animation.LinearInterpolator;
 
+import com.emildiaz.runner.model.GeoPoint;
 import com.emildiaz.runner.model.Run;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -224,7 +225,11 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     }
 
     public List<LatLng> drawPath(Run run) {
-        List<LatLng> latLngs = run.getLatLngHistory();
+        List<GeoPoint> geoPoints = run.getPoints();
+        List<LatLng> latLngs = new ArrayList<>();
+        for (GeoPoint geoPoint : geoPoints) {
+            latLngs.add(geoPoint.getLatLng());
+        }
         return drawPath(latLngs);
     }
 
