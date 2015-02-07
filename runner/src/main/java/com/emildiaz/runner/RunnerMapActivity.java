@@ -1,6 +1,5 @@
 package com.emildiaz.runner;
 
-import android.content.ContentValues;
 import android.location.Address;
 import android.location.Location;
 import android.view.Menu;
@@ -13,8 +12,6 @@ import com.emildiaz.runner.fragment.RunHistoryFragment;
 import com.emildiaz.runner.model.Run;
 import com.emildiaz.runner.task.GetAddressTask;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.util.List;
 
 import roboguice.activity.RoboActivity;
 import roboguice.inject.ContentView;
@@ -77,8 +74,11 @@ public class RunnerMapActivity extends RoboActivity implements
 
     public void stopTracking(View view) {
         mapFragment.stopTracking();
-        List<LatLng> runPath = mapFragment.getTrackedPath();
-        Run run = new Run(this, runPath.toArray(new LatLng[runPath.size()]));
+        Run run = new Run();
         run.save();
+
+        for (LatLng latLng : mapFragment.getTrackedPath()) {
+            run.addPoint(latLng);
+        }
     }
 }
