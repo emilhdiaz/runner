@@ -44,8 +44,8 @@
 
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
         <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyBYnbziqPnCgD74n9Z4SiKn6mMOIo8k2WU" />
-        <meta-data android:name="DATABASE" android:value="runner2.db" />
-        <meta-data android:name="VERSION" android:value="2" />
+        <meta-data android:name="DATABASE" android:value="runner.db" />
+        <meta-data android:name="VERSION" android:value="1" />
         <meta-data android:name="QUERY_LOG" android:value="true" />
         <meta-data android:name="DOMAIN_PACKAGE_NAME" android:value="com.emildiaz.runner.model" />
 
