@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 import com.orm.SugarRecord;
 
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -13,14 +14,18 @@ public class Run extends SugarRecord<Run> {
 
     private static final double KM_TO_MILES = 0.621371;
 
-    DateTime startDateTime = DateTime.now(TimeZone.getDefault());
-    DateTime endDateTime;
+    Date startDateTime = new Date();
+    Date endDateTime;
 
     public Run() {}
 
+    public Run(DateTime startDateTime) {
+        this.startDateTime = new Date(startDateTime.getMilliseconds(TimeZone.getDefault()));
+    }
+
     public Run(DateTime startDateTime, DateTime endDateTime) {
-        this.startDateTime = startDateTime;
-        this.endDateTime = endDateTime;
+        this.startDateTime = new Date(startDateTime.getMilliseconds(TimeZone.getDefault()));
+        this.endDateTime = new Date(endDateTime.getMilliseconds(TimeZone.getDefault()));;
     }
 
     public void addPoint(LatLng latLng) {
@@ -29,11 +34,11 @@ public class Run extends SugarRecord<Run> {
     }
 
     public DateTime getStartDateTime() {
-        return startDateTime;
+        return DateTime.forInstant(startDateTime.getTime(), TimeZone.getDefault());
     }
 
     public DateTime getEndDateTime() {
-        return endDateTime;
+        return DateTime.forInstant(endDateTime.getTime(), TimeZone.getDefault());
     }
 
     public List<GeoPoint> getPoints() {
@@ -53,5 +58,13 @@ public class Run extends SugarRecord<Run> {
         }
 
         return (distance / 1000) * KM_TO_MILES;
+    }
+
+    @Override
+    public void save() {
+        if (endDateTime == null) {
+            endDateTime = new Date();
+        }
+        super.save();
     }
 }
