@@ -3,6 +3,7 @@ package com.emildiaz.runner.model;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 import com.orm.SugarRecord;
+import com.orm.dsl.Ignore;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +17,9 @@ public class Run extends SugarRecord<Run> {
 
     Date startDateTime = new Date();
     Date endDateTime;
+
+    @Ignore
+    List<GeoPoint> points;
 
     public Run() {}
 
@@ -38,11 +42,18 @@ public class Run extends SugarRecord<Run> {
     }
 
     public DateTime getEndDateTime() {
+        Date endDateTime = this.endDateTime;
+        if (endDateTime == null) {
+            endDateTime = new Date();
+        }
         return DateTime.forInstant(endDateTime.getTime(), TimeZone.getDefault());
     }
 
     public List<GeoPoint> getPoints() {
-        return GeoPoint.find(GeoPoint.class, "run = ?", this.getId().toString());
+        if (points == null) {
+            points = GeoPoint.find(GeoPoint.class, "run = ?", this.getId().toString());
+        }
+        return points;
     }
 
     public double calculateDistance() {
@@ -58,6 +69,20 @@ public class Run extends SugarRecord<Run> {
         }
 
         return (distance / 1000) * KM_TO_MILES;
+    }
+
+    public long calculateDuration() {
+        DateTime startDateTime = getStartDateTime();
+        DateTime endDateTime = getEndDateTime();
+        return endDateTime.numSecondsFrom(startDateTime);
+    }
+
+    public double calculateAveragePace() {
+        return calculateDuration() / calculateDistance();
+    }
+
+    public double calculateAverageSpeed() {
+        return calculateDistance() / calculateDuration();
     }
 
     @Override
