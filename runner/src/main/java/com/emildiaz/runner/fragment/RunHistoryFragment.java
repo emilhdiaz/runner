@@ -13,23 +13,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.emildiaz.runner.R;
-import com.emildiaz.runner.db.RunTable;
 import com.emildiaz.runner.model.Run;
 
 import java.util.List;
 import java.util.Locale;
 
-public class RunHistoryFragment extends ListFragment {
+import roboguice.fragment.RoboListFragment;
 
-    private static final int RUN_LOADER = 2;
-    private static final String[] cursorColumns = {
-        RunTable.COLUMN_DISTANCE,
-        RunTable.COLUMN_DATE
-    };
-    private static final int[] viewFields = {
-        R.id.distance,
-        R.id.date,
-    };
+public class RunHistoryFragment extends RoboListFragment {
+
     private RunSelectedListener runSelectedListener;
     private ArrayAdapter adapter;
 
@@ -56,13 +48,23 @@ public class RunHistoryFragment extends ListFragment {
             ImageView image = (ImageView) view.findViewById(R.id.image);
             TextView distance = (TextView) view.findViewById(R.id.distance);
             TextView date = (TextView) view.findViewById(R.id.date);
-            distance.setText(String.format("%.2f, mile(s)", run.calculateDistance()));
-            date.setText(run.getStartDateTime().format("WWW, MMM D ", Locale.ENGLISH));
+            distance.setText(String.format("%.2f miles ", run.calculateDistance()));
+            date.setText(run.getStartDateTime().format("MMM D YYYY", Locale.ENGLISH));
 
             return view;
         }
     }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        if (!(activity instanceof RunSelectedListener)) {
+            throw new ClassCastException(activity.toString() + " must implement RunSelectedListener");
+        }
+
+        runSelectedListener = (RunSelectedListener) activity;
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,20 +72,7 @@ public class RunHistoryFragment extends ListFragment {
         List<Run> runs = Run.listAll(Run.class);
         adapter = new RunArrayAdapter(getActivity(), runs);
 
-        // Setup the list adapter
         setListAdapter(adapter);
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        // Make sure parent activity implements RunSelectedListener
-        if (!(activity instanceof RunSelectedListener)) {
-            throw new ClassCastException(activity.toString() + " must implement RunSelectedListener");
-        }
-
-        runSelectedListener = (RunSelectedListener) activity;
     }
 
     @Override
