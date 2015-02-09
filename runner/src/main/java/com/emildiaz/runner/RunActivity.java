@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.emildiaz.runner.fragment.MapFragment;
-import com.emildiaz.runner.fragment.RunHistoryFragment;
 import com.emildiaz.runner.model.Run;
 import com.emildiaz.runner.task.GetAddressTask;
 import com.google.android.gms.maps.model.LatLng;
@@ -18,10 +17,9 @@ import roboguice.inject.ContentView;
 import roboguice.inject.InjectFragment;
 import roboguice.inject.InjectView;
 
-@ContentView(R.layout.activity_runner_map)
-public class RunnerMapActivity extends RoboActivity implements
+@ContentView(R.layout.activity_run)
+public class RunActivity extends RoboActivity implements
     MapFragment.LocationUpdateListener,
-    RunHistoryFragment.RunSelectedListener,
     GetAddressTask.AddressUpdateListener
 {
 
@@ -43,18 +41,12 @@ public class RunnerMapActivity extends RoboActivity implements
 
     @Override
     public void onLocationUpdated(Location location) {
-        // Update location on screen
         (new GetAddressTask(this)).execute(location);
         locationText.setText(String.format(
             "Latitude: %f \nLongitude: %f",
             location.getLatitude(),
             location.getLongitude()
         ));
-    }
-
-    @Override
-    public void onRunSelected(Run run) {
-        mapFragment.drawPath(run);
     }
 
     @Override

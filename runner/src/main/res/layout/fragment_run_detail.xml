@@ -1,0 +1,24 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.emildiaz.runner.fragment.RunDetailFragment">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.emildiaz.runner.fragment.MapFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        map:mapType="terrain"
+        map:cameraTargetLat="40.7491870"
+        map:cameraTargetLng="-73.9405630"
+        map:uiCompass="true"
+        map:uiZoomControls="true"
+        map:uiZoomGestures="true"
+        map:uiScrollGestures="true"
+        map:uiRotateGestures="false"
+        map:uiTiltGestures="false"
+        tools:ignore="MissingPrefix"
+        />
+</LinearLayout>
