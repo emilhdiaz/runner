@@ -1,7 +1,6 @@
 package com.emildiaz.runner.fragment;
 
 import android.os.Bundle;
-import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,9 +8,9 @@ import android.view.ViewGroup;
 import com.emildiaz.runner.R;
 import com.emildiaz.runner.model.Run;
 
-import roboguice.fragment.RoboFragment;
+import roboguice.fragment.provided.RoboFragment;
 
-public class RunDetailFragment extends Fragment {
+public class RunDetailFragment extends RoboFragment {
 
     MapFragment mapFragment;
 
