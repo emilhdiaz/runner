@@ -12,6 +12,12 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="trackActivity"
-        android:text="Track"/>
+        android:onClick="viewRunHistory"
+        android:text="View Run History"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="newRun"
+        android:text="New Run"/>
 </LinearLayout>
