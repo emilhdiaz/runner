@@ -47,8 +47,13 @@ public class RunHistoryFragment extends RoboListFragment {
             ImageView image = (ImageView) view.findViewById(R.id.image);
             TextView distance = (TextView) view.findViewById(R.id.distance);
             TextView date = (TextView) view.findViewById(R.id.date);
-            distance.setText(String.format("%.2f miles ", run.calculateDistance()));
-            date.setText(run.getStartDateTime().format("MMM D YYYY", Locale.ENGLISH));
+            TextView duration = (TextView) view.findViewById(R.id.duration);
+            TextView pace = (TextView) view.findViewById(R.id.pace);
+
+            date.setText(run.getStartDateTime().format("MMM D", Locale.ENGLISH));
+            distance.setText(String.format("\t%.2f miles", run.calculateDistance()));
+            duration.setText(String.format("\t%d:%02d", run.calculateDuration() / 60, run.calculateDuration() % 60));
+            pace.setText(String.format("\t%d:%02d", run.calculateAveragePace() / 60, run.calculateAveragePace() % 60));
 
             return view;
         }

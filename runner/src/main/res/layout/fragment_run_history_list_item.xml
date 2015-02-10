@@ -14,13 +14,25 @@
         />
 
     <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"/>
+
+    <TextView
         android:id="@+id/distance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"/>
 
     <TextView
-        android:id="@+id/date"
+        android:id="@+id/duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/pace"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"/>

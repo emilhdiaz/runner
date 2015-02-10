@@ -74,11 +74,11 @@ public class Run extends SugarRecord<Run> {
     public long calculateDuration() {
         DateTime startDateTime = getStartDateTime();
         DateTime endDateTime = getEndDateTime();
-        return endDateTime.numSecondsFrom(startDateTime);
+        return startDateTime.numSecondsFrom(endDateTime);
     }
 
-    public double calculateAveragePace() {
-        return calculateDuration() / calculateDistance();
+    public long calculateAveragePace() {
+        return Math.round(calculateDuration() / calculateDistance());
     }
 
     public double calculateAverageSpeed() {
